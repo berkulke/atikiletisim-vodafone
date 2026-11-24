@@ -1,26 +1,109 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --vdf-red: #e60000;
+  --vdf-red-dark: #990000;
+  --vdf-red-hover: #bd0000;
+  --vdf-charcoal: #0d0d0d;
+  --vdf-text: #333333;
+  --vdf-text-muted: #666666;
+  --vdf-bg-light: #f4f4f4;
+  --vdf-bg-white: #ffffff;
+  --vdf-green: #009900;
+  --vdf-orange: #eb9700;
+  --vdf-blue: #007c92;
+  --vdf-border: #e5e5e5;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-vdf-red: var(--vdf-red);
+  --color-vdf-red-dark: var(--vdf-red-dark);
+  --color-vdf-charcoal: var(--vdf-charcoal);
+  --color-vdf-light: var(--vdf-bg-light);
+  --font-sans: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--vdf-bg-light);
+  color: var(--vdf-text);
+  font-family: var(--font-sans);
+}
+
+.vdf-card-shadow {
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.12);
+}
+
+.vdf-card-shadow:hover {
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.16);
+}
+
+.vdf-hero-gradient {
+  background: linear-gradient(115deg, #0d0d0d 0%, #3b0000 45%, #e60000 100%);
+}
+
+.vdf-btn-primary {
+  background-color: var(--vdf-red);
+  color: #ffffff;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.vdf-btn-primary:hover {
+  background-color: var(--vdf-red-hover);
+}
+
+.vdf-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.ck-content-wrapper .ck-editor__editable_inline {
+  min-height: 160px;
+  font-size: 0.875rem;
+}
+
+.vdf-rich-content h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.vdf-rich-content h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.vdf-rich-content p {
+  margin-bottom: 0.75rem;
+}
+
+.vdf-rich-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.vdf-rich-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.vdf-rich-content a {
+  color: #e60000;
+  text-decoration: underline;
 }

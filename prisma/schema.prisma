@@ -1,0 +1,273 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+}
+
+enum ProductCategory {
+  DEVICE
+  TARIFF
+  HOME_INTERNET
+  ACCESSORY
+}
+
+enum CampaignSource {
+  VODAFONE_SYNC
+  ADMIN_MANUAL
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  ON_DELIVERY
+  ADD_TO_BILL
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         UserRole @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Product {
+  id                String          @id @default(cuid())
+  slug              String          @unique
+  title             String
+  subtitle          String?
+  description       String
+  category          ProductCategory
+  brand             String
+  price             Decimal         @db.Decimal(12, 2)
+  installmentPrice  Decimal?        @db.Decimal(12, 2)
+  installmentMonths Int?
+  specs             Json            @default("{}")
+  imageUrl          String
+  stock             Int             @default(100)
+  isFeatured        Boolean         @default(false)
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  orderItems        OrderItem[]
+
+  @@index([category, isActive])
+  @@index([isFeatured, isActive])
+}
+
+model Campaign {
+  id           String         @id @default(cuid())
+  externalId   String?        @unique
+  slug         String         @unique
+  title        String
+  summary      String
+  description  String
+  imageUrl     String
+  targetUrl    String?
+  categorySlug String         @default("faturali-kampanyalar")
+  categoryName String         @default("Faturalı Kampanyalar")
+  badgeLabel   String?
+  badgeColor   String?
+  tags         String[]       @default([])
+  source       CampaignSource @default(ADMIN_MANUAL)
+  isFeatured   Boolean        @default(false)
+  isActive     Boolean        @default(true)
+  startsAt     DateTime?
+  endsAt       DateTime?
+  lastSyncedAt DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([categorySlug, isActive])
+  @@index([source, isActive])
+  @@index([isFeatured, isActive])
+}
+
+model CampaignSyncLog {
+  id           String    @id @default(cuid())
+  status       String
+  fetchedCount Int       @default(0)
+  createdCount Int       @default(0)
+  updatedCount Int       @default(0)
+  errorMessage String?
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique
+  customerName    String
+  customerPhone   String
+  customerEmail   String
+  tcIdentityLast4 String?
+  city            String
+  district        String
+  addressLine     String
+  paymentMethod   PaymentMethod @default(ADD_TO_BILL)
+  totalAmount     Decimal       @db.Decimal(12, 2)
+  status          OrderStatus   @default(PENDING)
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  items           OrderItem[]
+
+  @@index([status, createdAt])
+  @@index([orderNumber])
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String
+  productId  String
+  title      String
+  quantity   Int
+  unitPrice  Decimal @db.Decimal(12, 2)
+  purchaseMode String @default("CASH")
+  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product    Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+model SiteSettings {
+  id              String   @id @default("default")
+  brandName       String   @default("Atik İletişim")
+  tagline         String   @default("Vodafone Yetkili Satış & İletişim Merkezi")
+  siteUrl         String   @default("https://atikiletisim.com")
+  logoUrl         String   @default("")
+  faviconUrl      String   @default("")
+  phone           String   @default("+90 542 000 00 00")
+  whatsappPhone   String   @default("905420000000")
+  whatsappMessage String   @default("Merhaba Atik İletişim, cihaz ve tarife kampanyaları hakkında bilgi almak istiyorum.")
+  email           String   @default("iletisim@atikiletisim.com")
+  instagramUrl    String   @default("https://www.instagram.com/atikiletisim/")
+  address         String   @default("Türkiye")
+  city            String   @default("İstanbul")
+  district        String   @default("Merkez")
+  geoRegion       String   @default("TR-34")
+  geoLatitude     String   @default("41.0082")
+  geoLongitude    String   @default("28.9784")
+  workingHours    String   @default("Hafta içi & Cumartesi: 09:00 - 20:00")
+  seoTitle        String   @default("Atik İletişim | Vodafone Türkiye Tarifeler, Cihazlar ve Kampanyalar")
+  seoDescription  String   @default("Atik İletişim güvencesiyle en yeni akıllı telefonlar, faturalı Vodafone tarifeleri, fiber ev interneti ve güncel kampanyalar.")
+  seoKeywords     String   @default("Atik İletişim, Vodafone, faturalı tarifeler, telefon kampanyaları, ev interneti")
+  ogImageUrl      String   @default("")
+  cookiebotId     String   @default("")
+  updatedAt       DateTime @updatedAt
+}
+
+model CustomPage {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String
+  summary         String?
+  content         String
+  metaTitle       String?
+  metaDescription String?
+  showInHeader    Boolean  @default(false)
+  showInFooter    Boolean  @default(true)
+  isPublished     Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([isPublished, showInHeader])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isRead, createdAt])
+}
+
+model Branch {
+  id            String   @id @default(cuid())
+  name          String
+  city          String   @default("Gaziantep")
+  district      String   @default("Şahinbey")
+  address       String   @default("")
+  phone         String   @default("")
+  whatsappPhone String   @default("")
+  workingHours  String   @default("09:00 - 20:00")
+  mapUrl        String   @default("")
+  sortOrder     Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model BlogPost {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String
+  excerpt         String
+  content         String
+  coverImageUrl   String   @default("")
+  category        String   @default("Teknoloji & Telekom")
+  author          String   @default("Atik İletişim Editör")
+  metaTitle       String?
+  metaDescription String?
+  isPublished     Boolean  @default(true)
+  publishedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([isPublished, publishedAt])
+}
+
+model FaqItem {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  category  String   @default("Genel")
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model VisitorLog {
+  id         String   @id @default(cuid())
+  ipAddress  String
+  country    String   @default("Bilinmiyor")
+  city       String   @default("Bilinmiyor")
+  region     String   @default("")
+  isp        String   @default("")
+  path       String
+  referrer   String   @default("Doğrudan")
+  userAgent  String   @default("")
+  deviceType String   @default("Masaüstü")
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([city])
+  @@index([ipAddress])
+}
+

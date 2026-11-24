@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: vodafone_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vodafone
+      POSTGRES_PASSWORD: vodafone_dev_password
+      POSTGRES_DB: vodafone_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - vodafone_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vodafone -d vodafone_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: vodafone_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - vodafone_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: vodafone_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: vodafone_minio
+      MINIO_ROOT_PASSWORD: vodafone_minio_secret
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    volumes:
+      - vodafone_miniodata:/data
+
+volumes:
+  vodafone_pgdata:
+  vodafone_redisdata:
+  vodafone_miniodata:
